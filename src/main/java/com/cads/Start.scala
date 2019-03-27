@@ -15,6 +15,18 @@ object Start {
     val sc = new SparkContext(conf)
     val rddRawData = sc.textFile("data/taxi_orders.txt")
     val tripRdd = rddRawData.map(fromLineToTrip)
+
+    val shortTripCounter = sc.accumulator(0)
+    tripRdd.foreach(trip=>{
+      if(trip.km<5) {
+        shortTripCounter.add(1)
+      }
+    })
+
+    println(s"short trips counter: ${shortTripCounter.value}")
+
+
+
     val bostonTripsRdd = tripRdd.filter(trip => trip.cityName == "boston").persist()
     val numberOfLongTripsToBoston = bostonTripsRdd.filter(_.km > 10).count()
     println(s"number of long trip to boston: $numberOfLongTripsToBoston")
